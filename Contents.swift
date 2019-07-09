@@ -19,27 +19,9 @@ struct Currency: Decodable {
     }
 }
 
-
 struct ExchangeRate: Decodable {
     let currency: Currency
     let rate: Double
-}
-
-
-private extension ExchangeRate {
-    struct List: Decodable {
-        let values: [ExchangeRate]
-        
-        init(from decoder: Decoder) throws {
-            let container = try decoder.singleValueContainer()
-            let dictionary = try container.decode([String : Double].self)
-            
-            values = dictionary.map {key, value in
-                print("k: \(key) v: \(value)")
-                return ExchangeRate(currency: Currency(key), rate: Double(value))
-            }
-        }
-    }
 }
 
 struct CurrencyConversion {
@@ -51,6 +33,22 @@ struct CurrencyConversion {
     private var rates: ExchangeRate.List
 }
 
+private extension ExchangeRate {
+    struct List: Decodable {
+        let values: [ExchangeRate]
+        
+        init(from decoder: Decoder) throws {
+            let container = try decoder.singleValueContainer()
+            let dictionary = try container.decode([String : Double].self)
+            
+            values = dictionary.map {key, value in
+                print("k: \(key) v: \(value)")
+                // There is an error here when decoding, "Expected to decode Dictionary<String, Any> but found a string/data instead."
+                return ExchangeRate(currency: Currency(key), rate: value)
+            }
+        }
+    }
+}
 
 let decoder = JSONDecoder()
 let data = try decoder.decode(ExchangeRate.self, from: rawData)
